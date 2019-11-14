@@ -41,7 +41,7 @@ class User {
         return this.phone;
     }
 
-    public void AddUser(int privilege) {
+    public void AddUser(String pword) {
 
         Connection db;
         PreparedStatement st = null;
@@ -52,9 +52,9 @@ class User {
                     + "phone, privilege, shifts, rewards) VALUES (?, ?, ?, ?, ?, 0, 0)");
             st.setString(1, this.GetName());
             st.setString(2, this.GetEmail());
-            st.setString(3, "0000");
+            st.setString(3, pword);
             st.setInt(4, this.GetPhone());
-            st.setInt(5, privilege);
+            st.setInt(5, this.privilege);
 
             rs = st.executeQuery();
 
@@ -331,36 +331,24 @@ public class Cinema {
         
         return userlist;
     }
-
-    private static void NewUser(Scanner scanner) {
-
-        User user = new User();
-
-        System.out.println("What is the user's name?: ");
-
-        user.name = scanner.nextLine();
-
-        System.out.println("What is the user's email?");
-
-        user.email = scanner.nextLine();
-
-        System.out.println("What is the user's phone number?");
-
-        user.phone = scanner.nextInt();
-
-        System.out.println("Should " + user.GetName() + " be a Super (1) or "
-                + "a normal user (0)? Enter a number: ");
-
-        int privilege = scanner.nextInt();
-
+    
+    private static void NewUser(String name, String email, int phone, 
+            int privilege, String password) {
+        
+        
         if (privilege > 1 || privilege < 0) {
             System.out.println("Error, number outside of scope 0-1");
             return;
         }
-
-        user.AddUser(privilege);
-
-        System.out.println("User created!");
+        
+        User user = new User();
+        user.email = email;
+        user.name = name;
+        user.phone = phone;
+        user.privilege = privilege;
+        
+        user.AddUser(password);
+        
     }
 
     //TODO

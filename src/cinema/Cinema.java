@@ -5,10 +5,6 @@
  */
 package cinema;
 
-import static cinema.Cinema.url;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -16,8 +12,6 @@ import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.function.BiConsumer;
 import javafx.util.Pair;
-
-
 
 class User {
 
@@ -33,15 +27,16 @@ class User {
     ArrayList<Group> groups;
     int reward_Available;
     int shifts;
+    int privilege;
 
     public String GetName() {
         return this.name;
     }
-    
+
     public String GetEmail() {
         return this.email;
     }
-    
+
     public int GetPhone() {
         return this.phone;
     }
@@ -72,9 +67,41 @@ class User {
 
 class Group {
 
+    static String url = "jdbc:postgresql://balarama.db.elephantsql.com:5432/vzwjksup";
+    static String username = "vzwjksup";
+    static String password = "OfSGhD9m8yhKrrOmg5vFJ7jbuXQafQ2o";
+
     String Name;
     Pair<User, Date> Members;
     User OnCallSuper;
+
+    private String GetName() {
+        return this.Name;
+    }
+
+    private User GetSuper() {
+        return this.OnCallSuper;
+    }
+
+    public void AddGroup() {
+
+        Connection db;
+        PreparedStatement st = null;
+        ResultSet rs = null;
+        try {
+            db = DriverManager.getConnection(url, username, password);
+            st = db.prepareStatement("INSERT INTO groups (name, super) "
+                    + "VALUES (?, ?)");
+            st.setString(1, this.GetName());
+            st.setInt(2, this.GetSuper().uId);
+
+            rs = st.executeQuery();
+
+        } catch (java.sql.SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+    }
 }
 
 class Show {
@@ -116,10 +143,8 @@ public class Cinema {
     static String url = "jdbc:postgresql://balarama.db.elephantsql.com:5432/vzwjksup";
     static String username = "vzwjksup";
     static String password = "OfSGhD9m8yhKrrOmg5vFJ7jbuXQafQ2o";
-    
+
     static User currentUser = null;
-    
-    
 
     /**
      * @param args the command line arguments
@@ -134,25 +159,19 @@ public class Cinema {
         }
 
         Scanner scanner = new Scanner(System.in);
-        
-        
+
         System.out.println("Please login to your user account: ");
         System.out.println("username: ");
-        
-        String user_name = scanner.nextLine();
-        
-        System.out.println("password: ");
-        
-        String pword = scanner.nextLine();
-        
-        currentUser = LoginUser(user_name, pword);
-        
-        System.out.println("Current user is: " + currentUser.name);
 
-        
-        
-        
-        
+        String user_name = scanner.nextLine();
+
+        System.out.println("password: ");
+
+        String pword = scanner.nextLine();
+
+        currentUser = LoginUser(user_name, pword);
+
+        System.out.println("Current user is: " + currentUser.name);
 
         System.out.println("You have the following options: ");
         System.out.println("1. Do you want to list users of the system?");
@@ -172,10 +191,19 @@ public class Cinema {
             NewUser(scanner);
 
         } else if (option.equalsIgnoreCase("3")) {
-            
+
             ListGroups();
 
         } else if (option.equalsIgnoreCase("4")) {
+
+            if (currentUser.privilege == 1) {
+
+                CreateGroup(scanner);
+
+            } else {
+                System.out.println("You do not have permission to create "
+                        + "groups!");
+            }
 
         } else if (option.equalsIgnoreCase("5")) {
 
@@ -183,77 +211,76 @@ public class Cinema {
 
         }
     }
-    
-      private static User LoginUser(String email, String password) {
-    // hash password
-    LinkedList vars = new LinkedList();
-    vars.add(email);
-    vars.add(password);
-    String query = "SELECT uid, name, email, phone, privilege, shifts, rewards FROM users WHERE email = ? AND password = ?";
 
-    BiConsumer<LinkedList, ResultSet> f = (l, rs) -> {
+    private static User LoginUser(String email, String password) {
+        // hash password
+        LinkedList vars = new LinkedList();
+        vars.add(email);
+        vars.add(password);
+        String query = "SELECT uid, name, email, phone, privilege, shifts, rewards "
+                + "FROM users WHERE email = ? AND password = ?";
+
+        BiConsumer<LinkedList, ResultSet> f = (l, rs) -> {
+            try {
+                while (rs.next()) {
+                    l.add(rs.getInt(1));
+                    l.add(rs.getString(2));
+                    l.add(rs.getString(3));
+                    l.add(rs.getInt(4));
+                    l.add(rs.getInt(5));
+                    l.add(rs.getInt(6));
+                    l.add(rs.getInt(7));
+                }
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        };
+        LinkedList result = Query(query, vars, f);
+
+        if (result.isEmpty()) {
+            return null;
+        }
+
+        User user = new User();
+        user.uId = (int) result.pop();
+        user.name = (String) result.pop();
+        user.email = (String) result.pop();
+        user.phone = (int) result.pop();
+        user.privilege = (int) result.pop();
+        user.shifts = (int) result.pop();
+        user.reward_Available = (int) result.pop();
+
+        return user;
+    }
+
+    public static LinkedList Query(String query, LinkedList queryVariables, BiConsumer f) {
+        Connection db;
+        LinkedList l = new LinkedList();
         try {
-            while(rs.next()) {
-                l.add(rs.getInt(1));
-                l.add(rs.getString(2));
-                l.add(rs.getString(3));
-                l.add(rs.getInt(4));
-                l.add(rs.getInt(5));
-                l.add(rs.getInt(6));
-                l.add(rs.getInt(7));
+            db = DriverManager.getConnection(url, username, password);
+            PreparedStatement pquery = db.prepareStatement(query);
+
+            int i = 1;
+            while (!queryVariables.isEmpty()) {
+                Object temp = queryVariables.pop();
+                if (temp instanceof String) {
+                    pquery.setString(i, (String) temp);
+                } else if (temp instanceof Integer) {
+                    pquery.setInt(i, (Integer) temp);
+                } else if (temp instanceof java.sql.Date) {
+                    pquery.setDate(i, (java.sql.Date) temp);
+                } else {
+                }
+                i++;
             }
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-    };
-    LinkedList result = Query(query, vars, f);
-    
-    if (result.isEmpty()) {return null;}
-    
-    User user = new User();
-    user.uId = (int)result.pop();
-    user.name = (String)result.pop();
-    user.email = (String)result.pop();
-    user.phone = (int)result.pop();
-    int privilege = (int)result.pop();
-    user.shifts = (int)result.pop();
-    user.reward_Available = (int)result.pop();
-    
-    return user;
-  }
-      
-      public static LinkedList Query(String query, LinkedList queryVariables, BiConsumer f){
-      Connection db;
-      LinkedList l = new LinkedList();
-    try {
-        db = DriverManager.getConnection(url, username, password);
-        PreparedStatement pquery = db.prepareStatement(query);
-        
-        int i = 1;
-        while(!queryVariables.isEmpty()){
-            Object temp = queryVariables.pop();
-            if(temp instanceof String){
-                pquery.setString(i, (String)temp);
-                System.out.println("parameter " + i + " is a string");
-            } else if(temp instanceof Integer) {
-                pquery.setInt(i, (Integer)temp);
-                System.out.println("parameter " + i + " is an integer");
-            } else if(temp instanceof java.sql.Date) {
-                pquery.setDate(i, (java.sql.Date)temp);
-                System.out.println("parameter " + i + " is a date");
-            } else {
-                System.out.println("parameter " + i + " is unknown");
-            }
-            i++;
-        }
-        ResultSet rs = pquery.executeQuery();
-        f.accept(l, rs);
-        
+            ResultSet rs = pquery.executeQuery();
+            f.accept(l, rs);
+
         } catch (java.sql.SQLException e) {
             System.out.println(e.getMessage());
         }
-    return l;
-  }
+        return l;
+    }
 
     private static void ListUser() throws SQLException {
         System.out.println("Current users of the system: ");
@@ -293,7 +320,7 @@ public class Cinema {
     }
 
     private static void NewUser(Scanner scanner) {
-        
+
         User user = new User();
 
         System.out.println("What is the user's name?: ");
@@ -323,6 +350,7 @@ public class Cinema {
         System.out.println("User created!");
     }
 
+    //TODO
     private static void ListGroups() {
 
         System.out.println("Current users of the system: ");
@@ -340,7 +368,60 @@ public class Cinema {
         }
 
         int groupnr = 1;
-        
+
+    }
+
+    private static void CreateGroup(Scanner scanner) {
+
+        Group group = new Group();
+
+        System.out.println("What would you like to name the group?: ");
+
+        group.Name = scanner.nextLine();
+
+        System.out.println("Please enter the email of the Super responsible "
+                + "for the group: ");
+
+        String superEmail = scanner.nextLine();
+
+        User tester = new User();
+
+        LinkedList vars = new LinkedList();
+        vars.add(superEmail);
+        String query = "SELECT uid, name FROM users WHERE email = ? ";
+
+        BiConsumer<LinkedList, ResultSet> f = (l, rs) -> {
+            try {
+                while (rs.next()) {
+                    l.add(rs.getInt(1));
+                    l.add(rs.getString(2));
+                }
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        };
+
+        LinkedList result = Query(query, vars, f);
+
+        tester.uId = (int) result.pop();
+        tester.name = (String) result.pop();
+
+        System.out.println("The super's name is " + tester.name + ", correct? "
+                + "(y/n)?: ");
+
+        String reply = scanner.nextLine();
+
+        if (reply.equalsIgnoreCase("y")) {
+
+            group.OnCallSuper = tester;
+
+            group.AddGroup();
+
+            System.out.println("Group added!");
+        } else {
+            CreateGroup(scanner);
+        }
+
     }
 
 }

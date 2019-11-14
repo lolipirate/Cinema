@@ -152,12 +152,15 @@ public class Cinema {
     public static void main(String[] args) throws SQLException {
         // TODO code application logic here
 
-        try {
-            Class.forName("org.postgresql.Driver");
-        } catch (java.lang.ClassNotFoundException e) {
-            System.out.println(e.getMessage());
-        }
 
+        Greeter();
+        
+        ListOptions();
+
+        
+    }
+    
+    private static void Greeter() {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Please login to your user account: ");
@@ -168,11 +171,17 @@ public class Cinema {
         System.out.println("password: ");
 
         String pword = scanner.nextLine();
-
+        
         currentUser = LoginUser(user_name, pword);
-
+        
         System.out.println("Current user is: " + currentUser.name);
-
+    }
+    
+    
+    private static void ListOptions() throws SQLException {
+        
+        Scanner scanner = new Scanner(System.in);
+        
         System.out.println("You have the following options: ");
         System.out.println("1. Do you want to list users of the system?");
         System.out.println("2. Do you want to create a user?");
@@ -210,6 +219,7 @@ public class Cinema {
         } else {
 
         }
+        
     }
 
     private static User LoginUser(String email, String password) {
@@ -321,8 +331,7 @@ public class Cinema {
         return user;
     }
     
-    private static void ListUser() throws SQLException {
-        System.out.println("Current users of the system: ");
+    private static ArrayList ListUser() throws SQLException {
 
         Connection db;
         Statement st = null;
@@ -336,26 +345,30 @@ public class Cinema {
             System.out.println(e.getMessage());
         }
 
-        int personnr = 1;
+        
+        ArrayList<User> userlist = new ArrayList<>();
 
         while (rs.next()) {
-            System.out.println("Information about user " + personnr + ": ");
-            System.out.print("Name: ");
-            System.out.println(rs.getString(2));
-            System.out.print("Email: ");
-            System.out.println(rs.getString(3));
-            System.out.print("Phone Number: ");
-            System.out.println(rs.getString(5));
-            System.out.print("This user has taken " + rs.getString(7)
-                    + " shifts and currently has " + rs.getString(8)
-                    + " rewards available.");
-
-            personnr++;
-            System.out.println();
-
+            User new_user = new User();
+            
+            new_user.name = rs.getString(2);
+            
+            new_user.email = rs.getString(3);
+            
+            new_user.phone = rs.getInt(5);
+            
+            new_user.privilege = rs.getInt(6);
+            
+            new_user.shifts = rs.getInt(7);
+            
+            new_user.reward_Available = rs.getInt(8);
+            
+            userlist.add(new_user);
         }
 
         rs.close();
+        
+        return userlist;
     }
 
     private static void NewUser(Scanner scanner) {

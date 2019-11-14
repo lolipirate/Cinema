@@ -152,14 +152,12 @@ public class Cinema {
     public static void main(String[] args) throws SQLException {
         // TODO code application logic here
 
-
         Greeter();
-        
+
         ListOptions();
 
-        
     }
-    
+
     private static void Greeter() {
         Scanner scanner = new Scanner(System.in);
 
@@ -171,17 +169,16 @@ public class Cinema {
         System.out.println("password: ");
 
         String pword = scanner.nextLine();
-        
+
         currentUser = LoginUser(user_name, pword);
-        
+
         System.out.println("Current user is: " + currentUser.name);
     }
-    
-    
+
     private static void ListOptions() throws SQLException {
-        
+
         Scanner scanner = new Scanner(System.in);
-        
+
         System.out.println("You have the following options: ");
         System.out.println("1. Do you want to list users of the system?");
         System.out.println("2. Do you want to create a user?");
@@ -219,7 +216,7 @@ public class Cinema {
         } else {
 
         }
-        
+
     }
 
     private static User LoginUser(String email, String password) {
@@ -314,7 +311,7 @@ public class Cinema {
             }
         };
         LinkedList result = Query(query, vars, f);
-        
+
         if (result.isEmpty()) {
             return null;
         }
@@ -330,7 +327,7 @@ public class Cinema {
 
         return user;
     }
-    
+
     private static ArrayList ListUser() throws SQLException {
 
         Connection db;
@@ -345,57 +342,55 @@ public class Cinema {
             System.out.println(e.getMessage());
         }
 
-        
         ArrayList<User> userlist = new ArrayList<>();
 
         while (rs.next()) {
             User new_user = new User();
-            
+
             new_user.name = rs.getString(2);
-            
+
             new_user.email = rs.getString(3);
-            
+
             new_user.phone = rs.getInt(5);
-            
+
             new_user.privilege = rs.getInt(6);
-            
+
             new_user.shifts = rs.getInt(7);
-            
+
             new_user.reward_Available = rs.getInt(8);
-            
+
             userlist.add(new_user);
         }
 
         rs.close();
-        
+
         return userlist;
     }
-    
-    private static void NewUser(String name, String email, int phone, 
+
+    private static void NewUser(String name, String email, int phone,
             int privilege, String password) {
-        
-        
+
         if (privilege > 1 || privilege < 0) {
             System.out.println("Error, number outside of scope 0-1");
             return;
         }
-        
+
         User user = new User();
         user.email = email;
         user.name = name;
         user.phone = phone;
         user.privilege = privilege;
-        
+
         user.AddUser(password);
-        
+
     }
 
     //TODO
     private static ArrayList<Group> ListGroups() {
-        
+
         LinkedList vars = new LinkedList();
         String query = ("SELECT * FROM groups");
-        
+
         BiConsumer<LinkedList, ResultSet> f = (l, rs) -> {
             try {
                 while (rs.next()) {
@@ -411,66 +406,25 @@ public class Cinema {
         LinkedList<LinkedList> result = Query(query, vars, f);
         Group g;
         ArrayList<Group> groups = new ArrayList();
-        while(!result.isEmpty()) {
+        while (!result.isEmpty()) {
             LinkedList temp = result.pop();
             g = new Group();
-            g.name = (String)temp.pop();
-            g.onCallSuper = GetUser((int)temp.pop());
+            g.name = (String) temp.pop();
+            g.onCallSuper = GetUser((int) temp.pop());
             groups.add(g);
         }
         return groups;
     }
 
-    private static void CreateGroup(Scanner scanner) {
+    private static void CreateGroup(String groupname, User currentSuper) {
 
         Group group = new Group();
 
-        System.out.println("What would you like to name the group?: ");
+        group.name = groupname;
 
-        group.name = scanner.nextLine();
+        group.onCallSuper = currentSuper;
 
-        System.out.println("Please enter the email of the Super responsible "
-                + "for the group: ");
-
-        String superEmail = scanner.nextLine();
-
-        User tester = new User();
-
-        LinkedList vars = new LinkedList();
-        vars.add(superEmail);
-        String query = "SELECT uid, name FROM users WHERE email = ? ";
-
-        BiConsumer<LinkedList, ResultSet> f = (l, rs) -> {
-            try {
-                while (rs.next()) {
-                    l.add(rs.getInt(1));
-                    l.add(rs.getString(2));
-                }
-            } catch (SQLException e) {
-                System.out.println(e.getMessage());
-            }
-        };
-
-        LinkedList result = Query(query, vars, f);
-
-        tester.uId = (int) result.pop();
-        tester.name = (String) result.pop();
-
-        System.out.println("The super's name is " + tester.name + ", correct? "
-                + "(y/n)?: ");
-
-        String reply = scanner.nextLine();
-
-        if (reply.equalsIgnoreCase("y")) {
-
-            group.onCallSuper = tester;
-
-            group.AddGroup();
-
-            System.out.println("Group added!");
-        } else {
-            CreateGroup(scanner);
-        }
+        group.AddGroup();
 
     }
 

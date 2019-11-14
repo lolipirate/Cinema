@@ -293,7 +293,6 @@ public class Cinema {
     }
 
     private static ArrayList ListUser() throws SQLException {
-        System.out.println("Current users of the system: ");
 
         Connection db;
         Statement st = null;
@@ -307,7 +306,6 @@ public class Cinema {
             System.out.println(e.getMessage());
         }
 
-        int personnr = 1;
         
         ArrayList<User> userlist = new ArrayList<>();
 

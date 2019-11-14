@@ -152,12 +152,15 @@ public class Cinema {
     public static void main(String[] args) throws SQLException {
         // TODO code application logic here
 
-        try {
-            Class.forName("org.postgresql.Driver");
-        } catch (java.lang.ClassNotFoundException e) {
-            System.out.println(e.getMessage());
-        }
 
+        Greeter();
+        
+        ListOptions();
+
+        
+    }
+    
+    private static void Greeter() {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Please login to your user account: ");
@@ -168,11 +171,17 @@ public class Cinema {
         System.out.println("password: ");
 
         String pword = scanner.nextLine();
-
+        
         currentUser = LoginUser(user_name, pword);
-
+        
         System.out.println("Current user is: " + currentUser.name);
-
+    }
+    
+    
+    private static void ListOptions() throws SQLException {
+        
+        Scanner scanner = new Scanner(System.in);
+        
         System.out.println("You have the following options: ");
         System.out.println("1. Do you want to list users of the system?");
         System.out.println("2. Do you want to create a user?");
@@ -210,6 +219,7 @@ public class Cinema {
         } else {
 
         }
+        
     }
 
     private static User LoginUser(String email, String password) {

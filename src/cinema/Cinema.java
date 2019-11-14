@@ -71,16 +71,16 @@ class Group {
     static String username = "vzwjksup";
     static String password = "OfSGhD9m8yhKrrOmg5vFJ7jbuXQafQ2o";
 
-    String Name;
+    String name;
     Pair<User, Date> Members;
-    User OnCallSuper;
+    User onCallSuper;
 
     private String GetName() {
-        return this.Name;
+        return this.name;
     }
 
     private User GetSuper() {
-        return this.OnCallSuper;
+        return this.onCallSuper;
     }
 
     public void AddGroup() {
@@ -282,6 +282,45 @@ public class Cinema {
         return l;
     }
 
+    private static User GetUser(int userId) {
+        LinkedList vars = new LinkedList();
+        vars.add(userId);
+        String query = "SELECT uid, name, email, phone, privilege, shifts, rewards "
+                + "FROM users WHERE uid = ?";
+
+        BiConsumer<LinkedList, ResultSet> f = (l, rs) -> {
+            try {
+                while (rs.next()) {
+                    l.add(rs.getInt(1));
+                    l.add(rs.getString(2));
+                    l.add(rs.getString(3));
+                    l.add(rs.getInt(4));
+                    l.add(rs.getInt(5));
+                    l.add(rs.getInt(6));
+                    l.add(rs.getInt(7));
+                }
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        };
+        LinkedList result = Query(query, vars, f);
+        
+        if (result.isEmpty()) {
+            return null;
+        }
+
+        User user = new User();
+        user.uId = (int) result.pop();
+        user.name = (String) result.pop();
+        user.email = (String) result.pop();
+        user.phone = (int) result.pop();
+        user.privilege = (int) result.pop();
+        user.shifts = (int) result.pop();
+        user.reward_Available = (int) result.pop();
+
+        return user;
+    }
+    
     private static void ListUser() throws SQLException {
         System.out.println("Current users of the system: ");
 
@@ -351,24 +390,34 @@ public class Cinema {
     }
 
     //TODO
-    private static void ListGroups() {
+    private static ArrayList<Group> ListGroups() {
+        
+        LinkedList vars = new LinkedList();
+        String query = ("SELECT * FROM groups");
+        
+        BiConsumer<LinkedList, ResultSet> f = (l, rs) -> {
+            try {
+                while (rs.next()) {
+                    LinkedList temp = new LinkedList();
+                    temp.add(rs.getString(1));
+                    temp.add(rs.getInt(2));
+                }
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        };
 
-        System.out.println("Current users of the system: ");
-
-        Connection db;
-        Statement st = null;
-        ResultSet rs = null;
-        try {
-            db = DriverManager.getConnection(url, username, password);
-            st = db.createStatement();
-            rs = st.executeQuery("SELECT * FROM groups");
-
-        } catch (java.sql.SQLException e) {
-            System.out.println(e.getMessage());
+        LinkedList<LinkedList> result = Query(query, vars, f);
+        Group g;
+        ArrayList<Group> groups = new ArrayList();
+        while(!result.isEmpty()) {
+            LinkedList temp = result.pop();
+            g = new Group();
+            g.name = (String)temp.pop();
+            g.onCallSuper = GetUser((int)temp.pop());
+            groups.add(g);
         }
-
-        int groupnr = 1;
-
+        return groups;
     }
 
     private static void CreateGroup(Scanner scanner) {
@@ -377,7 +426,7 @@ public class Cinema {
 
         System.out.println("What would you like to name the group?: ");
 
-        group.Name = scanner.nextLine();
+        group.name = scanner.nextLine();
 
         System.out.println("Please enter the email of the Super responsible "
                 + "for the group: ");
@@ -413,7 +462,7 @@ public class Cinema {
 
         if (reply.equalsIgnoreCase("y")) {
 
-            group.OnCallSuper = tester;
+            group.onCallSuper = tester;
 
             group.AddGroup();
 

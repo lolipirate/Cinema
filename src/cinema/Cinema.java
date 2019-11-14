@@ -292,7 +292,7 @@ public class Cinema {
         return l;
     }
 
-    private static void ListUser() throws SQLException {
+    private static ArrayList ListUser() throws SQLException {
         System.out.println("Current users of the system: ");
 
         Connection db;
@@ -308,25 +308,30 @@ public class Cinema {
         }
 
         int personnr = 1;
+        
+        ArrayList<User> userlist = new ArrayList<>();
 
         while (rs.next()) {
-            System.out.println("Information about user " + personnr + ": ");
-            System.out.print("Name: ");
-            System.out.println(rs.getString(2));
-            System.out.print("Email: ");
-            System.out.println(rs.getString(3));
-            System.out.print("Phone Number: ");
-            System.out.println(rs.getString(5));
-            System.out.print("This user has taken " + rs.getString(7)
-                    + " shifts and currently has " + rs.getString(8)
-                    + " rewards available.");
-
-            personnr++;
-            System.out.println();
-
+            User new_user = new User();
+            
+            new_user.name = rs.getString(2);
+            
+            new_user.email = rs.getString(3);
+            
+            new_user.phone = rs.getInt(5);
+            
+            new_user.privilege = rs.getInt(6);
+            
+            new_user.shifts = rs.getInt(7);
+            
+            new_user.reward_Available = rs.getInt(8);
+            
+            userlist.add(new_user);
         }
 
         rs.close();
+        
+        return userlist;
     }
 
     private static void NewUser(Scanner scanner) {

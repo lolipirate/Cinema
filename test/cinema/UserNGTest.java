@@ -147,17 +147,8 @@ public class UserNGTest {
         String query = "DELETE FROM users WHERE email = ?";
         
         Connection db;
-        LinkedList l = new LinkedList();
-        try {
-            db = DriverManager.getConnection(url, username, password);
-            PreparedStatement pquery = db.prepareStatement(query);
-            pquery.setString(1,email);
-            ResultSet rs = pquery.executeQuery();
-
-        } catch (java.sql.SQLException e) {
-            System.out.println(e.getMessage());
-        }
-        
+        BiConsumer<LinkedList, ResultSet> f = (l, rs) -> {};
+        Query(query, vars, f);       
     }
 
     

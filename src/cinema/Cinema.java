@@ -327,6 +327,8 @@ public class Cinema {
 
         return user;
     }
+    
+    
 
     private static ArrayList ListUser() throws SQLException {
 

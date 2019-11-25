@@ -11,13 +11,11 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.function.BiConsumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.util.Pair;
 
 class User {
-
-    static String url = "jdbc:postgresql://balarama.db.elephantsql.com:5432/vzwjksup";
-    static String username = "vzwjksup";
-    static String password = "OfSGhD9m8yhKrrOmg5vFJ7jbuXQafQ2o";
 
     String name;
     String email;
@@ -40,36 +38,23 @@ class User {
     public int GetPhone() {
         return this.phone;
     }
-
+    
     public void AddUser(String pword) {
-
-        Connection db;
-        PreparedStatement st = null;
-        ResultSet rs = null;
-        try {
-            db = DriverManager.getConnection(url, username, password);
-            st = db.prepareStatement("INSERT INTO users (name, email, password, "
-                    + "phone, privilege, shifts, rewards) VALUES (?, ?, ?, ?, ?, 0, 0)");
-            st.setString(1, this.GetName());
-            st.setString(2, this.GetEmail());
-            st.setString(3, pword);
-            st.setInt(4, this.GetPhone());
-            st.setInt(5, this.privilege);
-
-            rs = st.executeQuery();
-
-        } catch (java.sql.SQLException e) {
-            System.out.println(e.getMessage());
-        }
-
+        LinkedList vars = new LinkedList();
+        vars.add(this.GetName());
+        vars.add(this.GetEmail());
+        vars.add(pword);
+        vars.add(this.GetPhone());
+        vars.add(this.privilege);
+        String query = "INSERT INTO users (name, email, password, "
+                    + "phone, privilege, shifts, rewards) VALUES (?, ?, ?, ?, ?, 0, 0)";
+        
+        BiConsumer<LinkedList, ResultSet> f = (ls,rs) -> {};
+        Cinema.Query(query, vars, f);
     }
 }
 
 class Group {
-
-    static String url = "jdbc:postgresql://balarama.db.elephantsql.com:5432/vzwjksup";
-    static String username = "vzwjksup";
-    static String password = "OfSGhD9m8yhKrrOmg5vFJ7jbuXQafQ2o";
 
     String name;
     Pair<User, Date> Members;
@@ -84,23 +69,14 @@ class Group {
     }
 
     public void AddGroup() {
-
-        Connection db;
-        PreparedStatement st = null;
-        ResultSet rs = null;
-        try {
-            db = DriverManager.getConnection(url, username, password);
-            st = db.prepareStatement("INSERT INTO groups (name, super) "
-                    + "VALUES (?, ?)");
-            st.setString(1, this.GetName());
-            st.setInt(2, this.GetSuper().uId);
-
-            rs = st.executeQuery();
-
-        } catch (java.sql.SQLException e) {
-            System.out.println(e.getMessage());
-        }
-
+        LinkedList vars = new LinkedList();
+        vars.add(this.GetName());
+        vars.add(this.GetSuper().uId);
+        String query = "INSERT INTO groups (name, super) "
+                    + "VALUES (?, ?)";
+        
+        BiConsumer<LinkedList, ResultSet> f = (ls,rs) -> {};
+        Cinema.Query(query, vars, f);
     }
 }
 
@@ -194,7 +170,7 @@ public class Cinema {
 
         } else if (option.equalsIgnoreCase("2")) {
 
-            NewUser(scanner);
+            //NewUser(scanner);
 
         } else if (option.equalsIgnoreCase("3")) {
 
@@ -204,7 +180,7 @@ public class Cinema {
 
             if (currentUser.privilege == 1) {
 
-                CreateGroup(scanner);
+                //CreateGroup(scanner);
 
             } else {
                 System.out.println("You do not have permission to create "
@@ -219,6 +195,35 @@ public class Cinema {
 
     }
 
+    public static LinkedList Query(String query, LinkedList queryVariables, BiConsumer f) {
+        Connection db;
+        LinkedList l = new LinkedList();
+        try {
+            db = DriverManager.getConnection(url, username, password);
+            PreparedStatement pquery = db.prepareStatement(query);
+
+            int i = 1;
+            while (!queryVariables.isEmpty()) {
+                Object temp = queryVariables.pop();
+                if (temp instanceof String) {
+                    pquery.setString(i, (String) temp);
+                } else if (temp instanceof Integer) {
+                    pquery.setInt(i, (Integer) temp);
+                } else if (temp instanceof java.sql.Date) {
+                    pquery.setDate(i, (java.sql.Date) temp);
+                } else {
+                }
+                i++;
+            }
+            ResultSet rs = pquery.executeQuery();
+            f.accept(l, rs);
+
+        } catch (java.sql.SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return l;
+    }
+    
     private static User LoginUser(String email, String password) {
         // hash password
         LinkedList vars = new LinkedList();
@@ -259,36 +264,7 @@ public class Cinema {
 
         return user;
     }
-
-    public static LinkedList Query(String query, LinkedList queryVariables, BiConsumer f) {
-        Connection db;
-        LinkedList l = new LinkedList();
-        try {
-            db = DriverManager.getConnection(url, username, password);
-            PreparedStatement pquery = db.prepareStatement(query);
-
-            int i = 1;
-            while (!queryVariables.isEmpty()) {
-                Object temp = queryVariables.pop();
-                if (temp instanceof String) {
-                    pquery.setString(i, (String) temp);
-                } else if (temp instanceof Integer) {
-                    pquery.setInt(i, (Integer) temp);
-                } else if (temp instanceof java.sql.Date) {
-                    pquery.setDate(i, (java.sql.Date) temp);
-                } else {
-                }
-                i++;
-            }
-            ResultSet rs = pquery.executeQuery();
-            f.accept(l, rs);
-
-        } catch (java.sql.SQLException e) {
-            System.out.println(e.getMessage());
-        }
-        return l;
-    }
-
+    
     private static User GetUser(int userId) {
         LinkedList vars = new LinkedList();
         vars.add(userId);
@@ -368,7 +344,38 @@ public class Cinema {
 
         return userlist;
     }
-
+    /*
+    private static LinkedList ListUser() throws SQLException {
+        LinkedList vars = new LinkedList();
+        String query = "SELECT * FROM users";
+        
+        BiConsumer<LinkedList, ResultSet> f = (ls, rs) -> {
+            try {
+                while (rs.next()) {
+                    User new_user = new User();
+                    
+                    new_user.name = rs.getString(2);
+                    
+                    new_user.email = rs.getString(3);
+                    
+                    new_user.phone = rs.getInt(5);
+                    
+                    new_user.privilege = rs.getInt(6);
+                    
+                    new_user.shifts = rs.getInt(7);
+                    
+                    new_user.reward_Available = rs.getInt(8);
+                    
+                    ls.add(new_user);
+                }
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        };
+        LinkedList userlist = Query(query, vars, f);
+        return userlist;
+    }
+*/
     private static void NewUser(String name, String email, int phone,
             int privilege, String password) {
 

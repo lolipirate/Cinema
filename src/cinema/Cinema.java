@@ -7,12 +7,11 @@ package cinema;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.function.BiConsumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.util.Pair;
 
 class User {
@@ -59,7 +58,16 @@ class Group {
     String name;
     Pair<User, Date> Members;
     User onCallSuper;
-
+    
+    public Group() {
+        
+    }
+    
+    public Group(String name, User onCallSuper) {
+        this.name = name;
+        this.onCallSuper = onCallSuper;
+    }
+    
     private String GetName() {
         return this.name;
     }
@@ -76,6 +84,20 @@ class Group {
                     + "VALUES (?, ?)";
         
         BiConsumer<LinkedList, ResultSet> f = (ls,rs) -> {};
+        Cinema.Query(query, vars, f);
+    }
+    
+    public void AddUserToGroup(User user) {
+        LinkedList vars = new LinkedList();
+        vars.add(this.name);
+        vars.add(user.uId);
+        java.sql.Timestamp date = new java.sql.Timestamp(Calendar.getInstance().getTime().getTime());
+        System.out.println(date);
+        vars.add(date);
+        String query = "INSERT INTO groupmembers (groupname, uid, joined) VALUES (?, ?, ?)";
+        
+        BiConsumer<LinkedList, ResultSet> f = (ls, rs) -> {};
+        
         Cinema.Query(query, vars, f);
     }
 }
@@ -128,8 +150,8 @@ public class Cinema {
     public static void main(String[] args) throws SQLException {
         // TODO code application logic here
 
-        Greeter();
-
+        //Greeter();
+        
         ListOptions();
 
     }
@@ -161,12 +183,17 @@ public class Cinema {
         System.out.println("3. Do you want to list the current groups?");
         System.out.println("4. Do you want to create a group? (Only Supers)");
         System.out.println("5. Do you want to list the members of groups?");
-
+        System.out.println("6. Do you want to add a user to a group?");
+        
         String option = scanner.nextLine();
 
         if (option.equalsIgnoreCase("1")) {
 
-            ListUser();
+            LinkedList<User> users = ListUser();
+            while (!users.isEmpty()) {
+                User u = users.pop();
+                System.out.println(u.GetName() + " : " + u.GetEmail());
+            }
 
         } else if (option.equalsIgnoreCase("2")) {
 
@@ -174,7 +201,8 @@ public class Cinema {
 
         } else if (option.equalsIgnoreCase("3")) {
 
-            ListGroups();
+            ArrayList<Group> groups = ListGroups();
+            groups.forEach(g -> System.out.println(g.name));
 
         } else if (option.equalsIgnoreCase("4")) {
 
@@ -188,9 +216,22 @@ public class Cinema {
             }
 
         } else if (option.equalsIgnoreCase("5")) {
-
+            System.out.println("List members of which group?");
+            option = scanner.nextLine();
+            LinkedList<User> members = ListMembersOfGroup(option);
+            members.forEach(u -> System.out.println(u.GetName() + " : " + u.GetEmail()));
+        } else if (option.equalsIgnoreCase("6")) {
+            System.out.println("Email of user:");
+            String email = scanner.nextLine();
+            User user = GetUser(email);
+            
+            System.out.println("Name of group:");
+            String groupname = scanner.nextLine();
+            Group group = GetGroup(groupname);
+            
+            group.AddUserToGroup(user);
         } else {
-
+            
         }
 
     }
@@ -209,8 +250,8 @@ public class Cinema {
                     pquery.setString(i, (String) temp);
                 } else if (temp instanceof Integer) {
                     pquery.setInt(i, (Integer) temp);
-                } else if (temp instanceof java.sql.Date) {
-                    pquery.setDate(i, (java.sql.Date) temp);
+                } else if (temp instanceof java.sql.Timestamp) {
+                    pquery.setTimestamp(i, (java.sql.Timestamp) temp);
                 } else {
                 }
                 i++;
@@ -304,6 +345,45 @@ public class Cinema {
         return user;
     }
     
+    private static User GetUser(String email) {
+        LinkedList vars = new LinkedList();
+        vars.add(email);
+        String query = "SELECT uid, name, email, phone, privilege, shifts, rewards "
+                + "FROM users WHERE email = ?";
+
+        BiConsumer<LinkedList, ResultSet> f = (l, rs) -> {
+            try {
+                while (rs.next()) {
+                    l.add(rs.getInt(1));
+                    l.add(rs.getString(2));
+                    l.add(rs.getString(3));
+                    l.add(rs.getInt(4));
+                    l.add(rs.getInt(5));
+                    l.add(rs.getInt(6));
+                    l.add(rs.getInt(7));
+                }
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        };
+        LinkedList result = Query(query, vars, f);
+
+        if (result.isEmpty()) {
+            return null;
+        }
+
+        User user = new User();
+        user.uId = (int) result.pop();
+        user.name = (String) result.pop();
+        user.email = (String) result.pop();
+        user.phone = (int) result.pop();
+        user.privilege = (int) result.pop();
+        user.shifts = (int) result.pop();
+        user.reward_Available = (int) result.pop();
+
+        return user;
+    }
+    
     private static LinkedList ListUser() throws SQLException {
         LinkedList vars = new LinkedList();
         String query = "SELECT * FROM users";
@@ -312,6 +392,8 @@ public class Cinema {
             try {
                 while (rs.next()) {
                     User new_user = new User();
+                    
+                    new_user.uId = rs.getInt(1);
                     
                     new_user.name = rs.getString(2);
                     
@@ -353,7 +435,7 @@ public class Cinema {
 
     }
 
-    //TODO
+    
     private static ArrayList<Group> ListGroups() {
 
         LinkedList vars = new LinkedList();
@@ -365,6 +447,7 @@ public class Cinema {
                     LinkedList temp = new LinkedList();
                     temp.add(rs.getString(1));
                     temp.add(rs.getInt(2));
+                    l.add(temp);
                 }
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
@@ -372,18 +455,107 @@ public class Cinema {
         };
 
         LinkedList<LinkedList> result = Query(query, vars, f);
-        Group g;
         ArrayList<Group> groups = new ArrayList();
         while (!result.isEmpty()) {
             LinkedList temp = result.pop();
-            g = new Group();
-            g.name = (String) temp.pop();
-            g.onCallSuper = GetUser((int) temp.pop());
-            groups.add(g);
+            String name = (String) temp.pop();
+            User onCallSuper = GetUser((int) temp.pop());
+            groups.add(new Group(name, onCallSuper));
         }
         return groups;
     }
+    
+    private static Group GetGroup(String name) {
+        LinkedList vars = new LinkedList();
+        vars.add(name);
+        String query = ("SELECT * FROM groups WHERE name = ?");
 
+        BiConsumer<LinkedList, ResultSet> f = (ls, rs) -> {
+            try {
+                while (rs.next()) {
+                    ls.add(rs.getString(1));
+                    ls.add(rs.getInt(2));
+                }
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        };
+        
+        LinkedList result = Query(query, vars, f);
+        String groupname = (String) result.pop();
+        int superId = (int) result.pop();
+        User onCallSuper = GetUser(superId);
+        
+        return new Group(groupname, onCallSuper);
+    }
+    /*
+    private static ArrayList ListMembersOfGroup(Scanner scanner) throws SQLException {
+
+        System.out.println("What is the name of the group that you would like to list the members of?: ");
+
+        String groupName = scanner.nextLine();
+     	
+     	Connection db;
+        Statement st = null;
+        ResultSet rs = null;
+        try {
+            db = DriverManager.getConnection(url, username, password);
+            st = db.createStatement();
+            rs = st.executeQuery("SELECT uid FROM groupmembers WHERE groupname = ?");
+        } catch (java.sql.SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        
+        ArrayList<User> userlist = new ArrayList<>();
+	while (rs.next()) {
+            User new_user = GetUser(rs.getInt(1));
+      	    userlist.add(new_user);		
+        }
+        rs.close();
+        
+        return userlist;
+    }
+    */
+    private static LinkedList<User> ListMembersOfGroup(String groupName) {
+        LinkedList vars = new LinkedList();
+        vars.add(groupName);
+        String query = ("SELECT users.uid, users.name, users.email, users.phone,"
+                + " users.privilege, users.shifts, users.rewards FROM users"
+                + " INNER JOIN groupmembers ON users.uid = groupmembers.uid"
+                + " WHERE groupmembers.groupname = ?");
+
+        BiConsumer<LinkedList, ResultSet> f = (l, rs) -> {
+            try {
+                while (rs.next()) {
+                    User new_user = new User();
+                    
+                    new_user.uId = rs.getInt(1);
+                    
+                    new_user.name = rs.getString(2);
+                    
+                    new_user.email = rs.getString(3);
+                    
+                    new_user.phone = rs.getInt(4);
+                    
+                    new_user.privilege = rs.getInt(5);
+                    
+                    new_user.shifts = rs.getInt(6);
+                    
+                    new_user.reward_Available = rs.getInt(7);
+                    
+                    l.add(new_user);
+                }
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        };
+
+        LinkedList userlist = Query(query, vars, f);
+        
+        return userlist;
+    }
+    
     private static void CreateGroup(String groupname, User currentSuper) {
 
         Group group = new Group();

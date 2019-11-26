@@ -16,15 +16,29 @@ import javafx.util.Pair;
 
 class User {
 
+    int uId;
     String name;
     String email;
-    int phone;
     String pwordHash;
-    int uId;
-    ArrayList<Group> groups;
-    int reward_Available;
-    int shifts;
+    int phone;
     int privilege;
+    int shifts;
+    int reward_Available;
+    ArrayList<Group> groups;
+
+    public User() {
+    }
+
+    public User(int uId, String name, String email, String pwordHash, int phone, int privilege, int shifts, int reward_Available) {
+        this.uId = uId;
+        this.name = name;
+        this.email = email;
+        this.pwordHash = pwordHash;
+        this.phone = phone;
+        this.privilege = privilege;
+        this.shifts = shifts;
+        this.reward_Available = reward_Available;
+    }    
 
     public String GetName() {
         return this.name;
@@ -48,7 +62,7 @@ class User {
         String query = "INSERT INTO users (name, email, password, "
                     + "phone, privilege, shifts, rewards) VALUES (?, ?, ?, ?, ?, 0, 0)";
         
-        BiConsumer<LinkedList, ResultSet> f = (ls,rs) -> {};
+        BiConsumer<LinkedList, ResultSet> f = (l,rs) -> {};
         Cinema.Query(query, vars, f);
     }
 }
@@ -83,8 +97,10 @@ class Group {
         String query = "INSERT INTO groups (name, super) "
                     + "VALUES (?, ?)";
         
-        BiConsumer<LinkedList, ResultSet> f = (ls,rs) -> {};
+        BiConsumer<LinkedList, ResultSet> f = (l,rs) -> {};
         Cinema.Query(query, vars, f);
+        
+        this.AddUserToGroup(this.GetSuper());
     }
     
     public void AddUserToGroup(User user) {
@@ -96,7 +112,7 @@ class Group {
         vars.add(date);
         String query = "INSERT INTO groupmembers (groupname, uid, joined) VALUES (?, ?, ?)";
         
-        BiConsumer<LinkedList, ResultSet> f = (ls, rs) -> {};
+        BiConsumer<LinkedList, ResultSet> f = (l, rs) -> {};
         
         Cinema.Query(query, vars, f);
     }
@@ -190,14 +206,23 @@ public class Cinema {
         if (option.equalsIgnoreCase("1")) {
 
             LinkedList<User> users = ListUser();
-            while (!users.isEmpty()) {
-                User u = users.pop();
-                System.out.println(u.GetName() + " : " + u.GetEmail());
-            }
+            users.forEach(u -> System.out.println(u.GetName() + " : " + u.GetEmail()));
 
         } else if (option.equalsIgnoreCase("2")) {
+            User user = new User();
+            user.privilege = 0;
 
-            //NewUser(scanner);
+            System.out.println("Name?");
+            user.name = scanner.nextLine();
+            
+            System.out.println("Email?");
+            user.email = scanner.nextLine();
+            
+            System.out.println("phone?");
+            user.phone = Integer.parseInt(scanner.nextLine());
+            
+            System.out.println("password?");
+            user.AddUser(scanner.nextLine());
 
         } else if (option.equalsIgnoreCase("3")) {
 
@@ -208,7 +233,10 @@ public class Cinema {
 
             if (currentUser.privilege == 1) {
 
-                //CreateGroup(scanner);
+                System.out.println("Groupname?");
+                String name = scanner.nextLine();
+                
+                System.out.println("");
 
             } else {
                 System.out.println("You do not have permission to create "
@@ -220,6 +248,7 @@ public class Cinema {
             option = scanner.nextLine();
             LinkedList<User> members = ListMembersOfGroup(option);
             members.forEach(u -> System.out.println(u.GetName() + " : " + u.GetEmail()));
+            
         } else if (option.equalsIgnoreCase("6")) {
             System.out.println("Email of user:");
             String email = scanner.nextLine();
@@ -230,6 +259,7 @@ public class Cinema {
             Group group = GetGroup(groupname);
             
             group.AddUserToGroup(user);
+            
         } else {
             
         }
@@ -388,7 +418,7 @@ public class Cinema {
         LinkedList vars = new LinkedList();
         String query = "SELECT * FROM users";
         
-        BiConsumer<LinkedList, ResultSet> f = (ls, rs) -> {
+        BiConsumer<LinkedList, ResultSet> f = (l, rs) -> {
             try {
                 while (rs.next()) {
                     User new_user = new User();
@@ -407,7 +437,7 @@ public class Cinema {
                     
                     new_user.reward_Available = rs.getInt(8);
                     
-                    ls.add(new_user);
+                    l.add(new_user);
                 }
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
@@ -470,11 +500,11 @@ public class Cinema {
         vars.add(name);
         String query = ("SELECT * FROM groups WHERE name = ?");
 
-        BiConsumer<LinkedList, ResultSet> f = (ls, rs) -> {
+        BiConsumer<LinkedList, ResultSet> f = (l, rs) -> {
             try {
                 while (rs.next()) {
-                    ls.add(rs.getString(1));
-                    ls.add(rs.getInt(2));
+                    l.add(rs.getString(1));
+                    l.add(rs.getInt(2));
                 }
             } catch (SQLException e) {
                 System.out.println(e.getMessage());

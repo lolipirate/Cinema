@@ -166,7 +166,7 @@ public class Cinema {
     public static void main(String[] args) throws SQLException {
         // TODO code application logic here
 
-        //Greeter();
+        Greeter();
         
         ListOptions();
 
@@ -270,12 +270,17 @@ public class Cinema {
 
     }
 
+    // f is a function that that takes a LinkedList and a ResultSet.
+    // Intended to 
     public static LinkedList Query(String query, LinkedList queryVariables, BiConsumer f) {
-        Connection db;
+        Connection db = null;
+        PreparedStatement pquery = null;
+        ResultSet rs = null;
+        
         LinkedList l = new LinkedList();
         try {
             db = DriverManager.getConnection(url, username, password);
-            PreparedStatement pquery = db.prepareStatement(query);
+            pquery = db.prepareStatement(query);
 
             int i = 1;
             while (!queryVariables.isEmpty()) {
@@ -290,11 +295,19 @@ public class Cinema {
                 }
                 i++;
             }
-            ResultSet rs = pquery.executeQuery();
+            rs = pquery.executeQuery();
             f.accept(l, rs);
 
         } catch (java.sql.SQLException e) {
             System.out.println(e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pquery != null) pquery.close();
+                if (db != null) db.close();
+            } catch (SQLException e){
+                System.out.println(e.getMessage());
+            }
         }
         return l;
     }
@@ -340,7 +353,7 @@ public class Cinema {
         return user;
     }
     
-    private static User GetUser(int userId) {
+    public static User GetUser(int userId) {
         LinkedList vars = new LinkedList();
         vars.add(userId);
         String query = "SELECT uid, name, email, phone, privilege, shifts, rewards "
@@ -379,7 +392,7 @@ public class Cinema {
         return user;
     }
     
-    private static User GetUser(String email) {
+    public static User GetUser(String email) {
         LinkedList vars = new LinkedList();
         vars.add(email);
         String query = "SELECT uid, name, email, phone, privilege, shifts, rewards "
@@ -418,7 +431,7 @@ public class Cinema {
         return user;
     }
     
-    private static LinkedList ListUser() throws SQLException {
+    public static LinkedList ListUser() throws SQLException {
         LinkedList vars = new LinkedList();
         String query = "SELECT * FROM users";
         
@@ -470,7 +483,7 @@ public class Cinema {
     }
 
     
-    private static ArrayList<Group> ListGroups() {
+    public static ArrayList<Group> ListGroups() {
 
         LinkedList vars = new LinkedList();
         String query = ("SELECT * FROM groups");
@@ -499,7 +512,7 @@ public class Cinema {
         return groups;
     }
     
-    private static Group GetGroup(String name) {
+    public static Group GetGroup(String name) {
         LinkedList vars = new LinkedList();
         vars.add(name);
         String query = ("SELECT * FROM groups WHERE name = ?");
@@ -522,36 +535,8 @@ public class Cinema {
         
         return new Group(groupname, onCallSuper);
     }
-    /*
-    private static ArrayList ListMembersOfGroup(Scanner scanner) throws SQLException {
-
-        System.out.println("What is the name of the group that you would like to list the members of?: ");
-
-        String groupName = scanner.nextLine();
-     	
-     	Connection db;
-        Statement st = null;
-        ResultSet rs = null;
-        try {
-            db = DriverManager.getConnection(url, username, password);
-            st = db.createStatement();
-            rs = st.executeQuery("SELECT uid FROM groupmembers WHERE groupname = ?");
-        } catch (java.sql.SQLException e) {
-            System.out.println(e.getMessage());
-        }
-
-        
-        ArrayList<User> userlist = new ArrayList<>();
-	while (rs.next()) {
-            User new_user = GetUser(rs.getInt(1));
-      	    userlist.add(new_user);		
-        }
-        rs.close();
-        
-        return userlist;
-    }
-    */
-    private static LinkedList<User> ListMembersOfGroup(String groupName) {
+    
+    public static LinkedList<User> ListMembersOfGroup(String groupName) {
         LinkedList vars = new LinkedList();
         vars.add(groupName);
         String query = ("SELECT users.uid, users.name, users.email, users.phone,"

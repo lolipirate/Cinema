@@ -236,7 +236,11 @@ public class Cinema {
                 System.out.println("Groupname?");
                 String name = scanner.nextLine();
                 
-                System.out.println("");
+                System.out.println("Email of on call Super?");
+                User user = GetUser(scanner.nextLine());
+                
+                Group group = new Group(name, user);
+                group.AddGroup();
 
             } else {
                 System.out.println("You do not have permission to create "

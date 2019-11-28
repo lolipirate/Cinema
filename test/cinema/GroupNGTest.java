@@ -52,16 +52,20 @@ public class GroupNGTest {
         User user = new User();
         User expected_user = new User();
         user.email = "unit@test.ok";
+        user.name = "unit test";
+        user.phone = 1234;
+        user.privilege = 1;
         instance.name = "unit test";
         instance.onCallSuper = user;
         
         
         user.AddUser("test");
         
+        
+        
         user.uId = Cinema.GetUser(user.email).uId;
         
         instance.AddGroup();
-        
         
         expected = Cinema.GetGroup(instance.name);
         
@@ -69,10 +73,9 @@ public class GroupNGTest {
         
         Assert.assertEquals(user.email, expected.onCallSuper.email);
         
-        
         RemoveGroupmemberFromDB(instance.name);
-        UserNGTest.RemoveFromDB(user.email);
         RemoveGroupFromDB(instance.name);
+        UserNGTest.RemoveFromDB(user.email);
     }
     
     

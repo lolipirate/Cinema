@@ -140,7 +140,7 @@ public class UserNGTest {
         return user;
     }
     
-    private void RemoveFromDB(String email) {
+    public static void RemoveFromDB(String email) {
         
         LinkedList vars = new LinkedList();
         vars.add(email);

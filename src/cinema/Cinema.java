@@ -73,12 +73,13 @@ class Group {
     User onCallSuper;
     
     public Group() {
-        
+        this.Members = new ArrayList();
     }
     
     public Group(String name, User onCallSuper) {
         this.name = name;
         this.onCallSuper = onCallSuper;
+        this.Members = new ArrayList();
     }
     
     private String GetName() {

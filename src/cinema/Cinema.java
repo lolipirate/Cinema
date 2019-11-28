@@ -69,7 +69,7 @@ class User {
 class Group {
 
     String name;
-    Pair<User, Date> Members;
+    ArrayList<Pair<User, Timestamp>> Members;
     User onCallSuper;
     
     public Group() {
@@ -246,8 +246,8 @@ public class Cinema {
         } else if (option.equalsIgnoreCase("5")) {
             System.out.println("List members of which group?");
             option = scanner.nextLine();
-            LinkedList<User> members = ListMembersOfGroup(option);
-            members.forEach(u -> System.out.println(u.GetName() + " : " + u.GetEmail()));
+            LinkedList<Pair<User, Timestamp>> members = ListMembersOfGroup(option);
+            members.forEach(u -> System.out.println(u.getKey().GetName() + " : " + u.getKey().GetEmail()));
             
         } else if (option.equalsIgnoreCase("6")) {
             System.out.println("Email of user:");
@@ -535,14 +535,20 @@ public class Cinema {
         int superId = (int) result.pop();
         User onCallSuper = GetUser(superId);
         
+        Group group = new Group(groupname, onCallSuper);
+        
+        LinkedList<Pair<User, Timestamp>> members = ListMembersOfGroup(group.name);
+        
+        group.Members.addAll(members);
+        
         return new Group(groupname, onCallSuper);
     }
     
-    public static LinkedList<User> ListMembersOfGroup(String groupName) {
+    public static LinkedList<Pair<User, Timestamp>> ListMembersOfGroup(String groupName) {
         LinkedList vars = new LinkedList();
         vars.add(groupName);
         String query = ("SELECT users.uid, users.name, users.email, users.phone,"
-                + " users.privilege, users.shifts, users.rewards FROM users"
+                + " users.privilege, users.shifts, users.rewards, groupmembers.joined FROM users"
                 + " INNER JOIN groupmembers ON users.uid = groupmembers.uid"
                 + " WHERE groupmembers.groupname = ?");
 
@@ -565,7 +571,7 @@ public class Cinema {
                     
                     new_user.reward_Available = rs.getInt(7);
                     
-                    l.add(new_user);
+                    l.add(new Pair(new_user, rs.getTimestamp(8)));
                 }
             } catch (SQLException e) {
                 System.out.println(e.getMessage());

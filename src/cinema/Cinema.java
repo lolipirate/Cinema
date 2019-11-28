@@ -433,7 +433,7 @@ public class Cinema {
         return user;
     }
     
-    public static LinkedList ListUser() throws SQLException {
+    public static LinkedList<User> ListUser() throws SQLException {
         LinkedList vars = new LinkedList();
         String query = "SELECT * FROM users";
         

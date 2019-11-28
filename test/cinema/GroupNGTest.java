@@ -5,7 +5,6 @@
  */
 package cinema;
 
-import static cinema.Cinema.Query;
 import java.util.LinkedList;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -57,11 +56,11 @@ public class GroupNGTest {
 
         user.AddUser("test");
 
-        user.uId = Cinema.GetUser(user.email).uId;
+        user.uId = Database.GetUser(user.email).uId;
 
         instance.AddGroup();
 
-        expected = Cinema.GetGroup(instance.name);
+        expected = Database.GetGroup(instance.name);
 
         Assert.assertEquals(instance.name, expected.name);
 
@@ -90,21 +89,21 @@ public class GroupNGTest {
         superuser.phone = 1337;
         superuser.privilege = 1;
         superuser.AddUser("unit");
-        superuser.uId = Cinema.GetUser(superuser.email).uId;
+        superuser.uId = Database.GetUser(superuser.email).uId;
 
         toAdd.email = "unit3@unit.test";
         toAdd.name = "mr Unit Test";
         toAdd.phone = 4321;
         toAdd.privilege = 0;
         toAdd.AddUser("test");
-        toAdd.uId = Cinema.GetUser(toAdd.email).uId;
+        toAdd.uId = Database.GetUser(toAdd.email).uId;
 
         instance.name = "test group";
         instance.onCallSuper = superuser;
         instance.AddGroup();
         instance.AddUserToGroup(toAdd);
 
-        expected_group = Cinema.GetGroup(instance.name);
+        expected_group = Database.GetGroup(instance.name);
 
         expected_user = expected_group.Members.get(1).getKey();
 
@@ -127,7 +126,7 @@ public class GroupNGTest {
         vars.add(group_name);
         String query = "DELETE FROM groups WHERE name = ?";
 
-        Query(query, vars);
+        Database.Query(query, vars);
     }
 
     private void RemoveGroupmembersFromDB(String name) {
@@ -135,7 +134,7 @@ public class GroupNGTest {
         vars.add(name);
         String query = "DELETE FROM groupmembers WHERE groupname = ?";
 
-        Query(query, vars);
+        Database.Query(query, vars);
     }
 
 }

@@ -6,21 +6,12 @@
 package cinema;
 
 import static cinema.Cinema.Query;
-import static cinema.Cinema.password;
-import static cinema.Cinema.url;
-import static cinema.Cinema.username;
 import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.function.BiConsumer;
 import static org.testng.Assert.*;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
@@ -28,19 +19,18 @@ import org.testng.annotations.Test;
  * @author Piratica
  */
 public class UserNGTest {
+
     /**
      * Test of GetName method, of class User.
      */
     @Test
     public void testGetName() {
         System.out.println("GetName");
-        
+
         User instance = new User();
-        
+
         instance.name = "Hans Andersen";
-        
-        
-        
+
         String expResult = "Hans Andersen";
         String result = instance.GetName();
         assertEquals(result, expResult);
@@ -81,23 +71,22 @@ public class UserNGTest {
         User instance = new User();
         User expected = new User();
         String pass = "unit tester";
-        
+
         instance.email = "unit@test.ok";
         instance.phone = 1488;
         instance.name = "unit test";
         instance.privilege = 0;
-        
-        
+
         instance.AddUser(pass);
-        
+
         expected = GetUserFromEmail(instance.email);
-        
+
         assertEquals(instance.email, expected.email);
-        
+
         assertEquals(instance.name, expected.name);
-        
+
         assertEquals(instance.phone, expected.phone);
-        
+
         RemoveFromDB(instance.email);
     }
 
@@ -139,17 +128,22 @@ public class UserNGTest {
 
         return user;
     }
-    
+
+    /**
+     * General clean up function for the database.
+     *
+     * @param email
+     */
     public static void RemoveFromDB(String email) {
-        
+
         LinkedList vars = new LinkedList();
         vars.add(email);
         String query = "DELETE FROM users WHERE email = ?";
-        
+
         Connection db;
-        BiConsumer<LinkedList, ResultSet> f = (l, rs) -> {};
-        Query(query, vars, f);       
+        BiConsumer<LinkedList, ResultSet> f = (l, rs) -> {
+        };
+        Query(query, vars, f);
     }
 
-    
 }

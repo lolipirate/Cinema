@@ -5,10 +5,8 @@
  */
 package cinema;
 
-import static cinema.Cinema.Query;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.function.BiConsumer;
 import static org.testng.Assert.*;
@@ -79,7 +77,7 @@ public class UserNGTest {
 
         instance.AddUser(pass);
 
-        expected = GetUserFromEmail(instance.email);
+        expected = Database.GetUser(instance.email);
 
         assertEquals(instance.email, expected.email);
 
@@ -88,45 +86,6 @@ public class UserNGTest {
         assertEquals(instance.phone, expected.phone);
 
         RemoveFromDB(instance.email);
-    }
-
-    private static User GetUserFromEmail(String email) {
-        LinkedList vars = new LinkedList();
-        vars.add(email);
-        String query = "SELECT uid, name, email, phone, privilege, shifts, rewards "
-                + "FROM users WHERE email = ?";
-
-        BiConsumer<LinkedList, ResultSet> f = (l, rs) -> {
-            try {
-                while (rs.next()) {
-                    l.add(rs.getInt(1));
-                    l.add(rs.getString(2));
-                    l.add(rs.getString(3));
-                    l.add(rs.getInt(4));
-                    l.add(rs.getInt(5));
-                    l.add(rs.getInt(6));
-                    l.add(rs.getInt(7));
-                }
-            } catch (SQLException e) {
-                System.out.println(e.getMessage());
-            }
-        };
-        LinkedList result = Query(query, vars, f);
-
-        if (result.isEmpty()) {
-            return null;
-        }
-
-        User user = new User();
-        user.uId = (int) result.pop();
-        user.name = (String) result.pop();
-        user.email = (String) result.pop();
-        user.phone = (int) result.pop();
-        user.privilege = (int) result.pop();
-        user.shifts = (int) result.pop();
-        user.reward_Available = (int) result.pop();
-
-        return user;
     }
 
     /**
@@ -143,7 +102,7 @@ public class UserNGTest {
         Connection db;
         BiConsumer<LinkedList, ResultSet> f = (l, rs) -> {
         };
-        Query(query, vars, f);
+        Database.Query(query, vars, f);
     }
 
 }

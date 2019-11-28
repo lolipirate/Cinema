@@ -62,8 +62,7 @@ class User {
         String query = "INSERT INTO users (name, email, password, "
                     + "phone, privilege, shifts, rewards) VALUES (?, ?, ?, ?, ?, 0, 0)";
         
-        BiConsumer<LinkedList, ResultSet> f = (l,rs) -> {};
-        Cinema.Query(query, vars, f);
+        Cinema.Query(query, vars);
     }
 }
 
@@ -96,9 +95,8 @@ class Group {
         vars.add(this.GetSuper().uId);
         String query = "INSERT INTO groups (name, super) "
                     + "VALUES (?, ?)";
-        
-        BiConsumer<LinkedList, ResultSet> f = (l,rs) -> {};
-        Cinema.Query(query, vars, f);
+      
+        Cinema.Query(query, vars);
         
         this.AddUserToGroup(this.GetSuper());
     }
@@ -111,10 +109,8 @@ class Group {
         System.out.println(date);
         vars.add(date);
         String query = "INSERT INTO groupmembers (groupname, uid, joined) VALUES (?, ?, ?)";
-        
-        BiConsumer<LinkedList, ResultSet> f = (l, rs) -> {};
-        
-        Cinema.Query(query, vars, f);
+       
+        Cinema.Query(query, vars);
     }
 }
 
@@ -138,7 +134,7 @@ class Shift {
 }
 
 /* SQL templates
-INSERT INTO users (name, email, password, phone, privilege, shifts, rewards) VALUES ()
+INSERT INTO users (name, email, password, phone, privilege, shifts, rewards) VALUES (?, ?, ?, ?, ?, 0, 0)
 
 INSERT INTO groups (name, super) VALUES (?, ?)
 
@@ -270,9 +266,10 @@ public class Cinema {
 
     }
 
-    // f is a function that that takes a LinkedList and a ResultSet.
-    // Intended to 
-    public static LinkedList Query(String query, LinkedList queryVariables, BiConsumer f) {
+    // Use this for all calls to the database.
+    // f is a function to handle the resultset and put results into the linkedlist
+    // that will be returned.
+    public static LinkedList Query(String query, LinkedList queryVariables, BiConsumer<LinkedList, ResultSet> f) {
         Connection db = null;
         PreparedStatement pquery = null;
         ResultSet rs = null;
@@ -310,6 +307,11 @@ public class Cinema {
             }
         }
         return l;
+    }
+    
+    // Use if the result doesn't need to be returned.
+    public static void Query(String query, LinkedList queryVariables) {
+        Query(query, queryVariables, (ls, rs) -> {});
     }
     
     private static User LoginUser(String email, String password) {

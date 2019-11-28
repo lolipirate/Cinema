@@ -6,16 +6,12 @@
 package cinema;
 
 import static cinema.Cinema.Query;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.LinkedList;
 import java.util.function.BiConsumer;
 import org.testng.Assert;
-import static org.testng.Assert.*;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
@@ -43,6 +39,9 @@ public class GroupNGTest {
     /**
      * Test of AddGroup method, of class Group.
      * The method will also test the AddUserToGroup method. 
+     * It will create a group and a super to add to said group. It will then 
+     * update the database with these entries and finally attempt to pull them
+     * for the database to compare with the expected values. 
      */
     @Test
     public void testAddGroup() {
@@ -78,8 +77,54 @@ public class GroupNGTest {
         UserNGTest.RemoveFromDB(user.email);
     }
     
+    /**
+     * Test of AddUserToGroup method, of class Group.
+     */
+    @Test
+    public void testAddUserToGroup() {
+        User superuser = new User();
+        User toAdd = new User();
+        Group instance = new Group();
+        Group expected_group = new Group();
+        User expected_user = new User();
+
+        superuser.email = "unit@test.ok";
+        superuser.name = "Unit Test";
+        superuser.phone = 1337;
+        superuser.privilege = 1;
+        superuser.AddUser("unit");
+        
+        toAdd.email = "test@unit.test";
+        toAdd.name = "mr Unit Test";
+        toAdd.phone = 4321;
+        toAdd.privilege = 0;
+        toAdd.AddUser("test");
+        
+        instance.name = "Unit Test";
+        instance.onCallSuper = superuser;
+        instance.AddGroup();
+        instance.AddUserToGroup(toAdd);
+        
+        expected_group = Cinema.GetGroup(instance.name);
+        
+        expected_user = expected_group.Members.getKey();
+        
+        Assert.assertEquals(toAdd.name, expected_user.name);
+        
+        
+        
+        RemoveGroupmemberFromDB(instance.name);
+        RemoveGroupFromDB(instance.name);
+        UserNGTest.RemoveFromDB(superuser.email);
+        UserNGTest.RemoveFromDB(toAdd.email);
+        
+    }
     
     
+    /*
+    * General cleanup methods to make the tests reusable and avoid
+    * cluttering up the database. 
+    */
     private void RemoveGroupFromDB(String group_name) {
         
         LinkedList vars = new LinkedList();

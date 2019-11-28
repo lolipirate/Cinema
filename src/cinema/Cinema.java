@@ -73,7 +73,7 @@ class Group {
     User onCallSuper;
     
     public Group() {
-        this.Members = new ArrayList();
+        this.Members = new ArrayList(); 
     }
     
     public Group(String name, User onCallSuper) {
@@ -163,7 +163,7 @@ public class Cinema {
     public static void main(String[] args) throws SQLException {
         // TODO code application logic here
 
-        Greeter();
+        //Greeter();
         
         ListOptions();
 
@@ -295,6 +295,7 @@ public class Cinema {
             }
             rs = pquery.executeQuery();
             f.accept(l, rs);
+            
 
         } catch (java.sql.SQLException e) {
             System.out.println(e.getMessage());
@@ -542,7 +543,7 @@ public class Cinema {
         
         group.Members.addAll(members);
         
-        return new Group(groupname, onCallSuper);
+        return group;
     }
     
     public static LinkedList<Pair<User, Timestamp>> ListMembersOfGroup(String groupName) {

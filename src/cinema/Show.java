@@ -5,17 +5,18 @@
  */
 package cinema;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 
 /**
  *
  * @author Lucas
  */
 public class Show {
+    int id;
     String name;
-    Date SDate;
-    Date EDate;
-    ArrayList<Shift> Shifts;
+    Timestamp SDate;
+    Timestamp EDate;
     int Room;
+    ArrayList<Shift> Shifts;
 }

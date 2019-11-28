@@ -5,17 +5,19 @@
  */
 package cinema;
 
-import java.util.Date;
+import java.sql.Timestamp;
 
 /**
  *
  * @author Lucas
  */
 public class Shift {
-    Group Group;
-    Date SDate;
-    Date EDate;
-    User person;
+    int shiftId;
+    int showId;
     String name;
+    Timestamp sDate;
+    Timestamp eDate;
+    Group group;
+    User person;
     int status;
 }

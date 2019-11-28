@@ -25,7 +25,12 @@ public class Cinema {
     public static void main(String[] args) {
         // TODO code application logic here
 
-        //Greeter();
+        Greeter();
+        if (currentUser == null) {
+            System.out.println("Login failed");
+            return;
+        }
+        System.out.println("Current user is: " + currentUser.name);
         ListOptions();
 
     }
@@ -43,8 +48,6 @@ public class Cinema {
         String pword = scanner.nextLine();
 
         currentUser = LoginUser(user_name, pword);
-
-        System.out.println("Current user is: " + currentUser.name);
     }
 
     private static void ListOptions() {
@@ -52,6 +55,7 @@ public class Cinema {
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
+            System.out.println("You are a " + (currentUser.privilege == 1 ? "Super user" : "Normal user"));
             System.out.println("You have the following options: ");
             System.out.println("1. Do you want to list users of the system?");
             System.out.println("2. Do you want to create a user?");

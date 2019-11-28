@@ -17,15 +17,15 @@ import java.util.function.BiConsumer;
 import javafx.util.Pair;
 
 /* SQL templates
-INSERT INTO users (name, email, password, phone, privilege, shifts, rewards) VALUES (?, ?, ?, ?, ?, 0, 0)
-
-INSERT INTO groups (name, super) VALUES (?, ?)
-
-INSERT INTO groupmembers (groupname, uid, joined) VALUES (?, ?, ?)
-
-INSERT INTO shows (name, startdate, enddate, room) VALUES (?, ?, ?, ?)
-
-INSERT INTO shifts (name, startdate, enddate, groupname, sid, status) VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO users (name, email, password, phone, privilege, shifts, rewards) VALUES (?, ?, ?, ?, ?, 0, 0)
+    
+    INSERT INTO groups (name, super) VALUES (?, ?)
+    
+    INSERT INTO groupmembers (groupname, uid, joined) VALUES (?, ?, ?)
+    
+    INSERT INTO shows (name, startdate, enddate, room) VALUES (?, ?, ?, ?)
+    
+    INSERT INTO shifts (name, startdate, enddate, groupname, sid, status) VALUES (?, ?, ?, ?, ?, ?)
  */
 /**
  *
@@ -36,9 +36,11 @@ public class Database {
     private static String username = "vzwjksup";
     private static String password = "OfSGhD9m8yhKrrOmg5vFJ7jbuXQafQ2o";
     
-    // Use this for all calls to the database.
-    // f is a function to handle the resultset and put results into the linkedlist
-    // that will be returned.
+    /* 
+        Use this for all calls to the database.
+        f is a function to handle the resultset and put results into the linkedlist
+        that will be returned.
+    */
     public static LinkedList Query(String query, LinkedList queryVariables, BiConsumer<LinkedList, ResultSet> f) {
         Connection db = null;
         PreparedStatement pquery = null;
@@ -49,6 +51,7 @@ public class Database {
             db = DriverManager.getConnection(url, username, password);
             pquery = db.prepareStatement(query);
 
+            // Checking the types of each variable and inserting them
             int i = 1;
             while (!queryVariables.isEmpty()) {
                 Object temp = queryVariables.pop();
@@ -69,6 +72,7 @@ public class Database {
         } catch (java.sql.SQLException e) {
             System.out.println(e.getMessage());
         } finally {
+            //Making sure connections are closed properly
             try {
                 if (rs != null) rs.close();
                 if (pquery != null) pquery.close();
@@ -85,6 +89,7 @@ public class Database {
         Query(query, queryVariables, (ls, rs) -> {});
     }
     
+    // Gets a user by email and password
     public static User LoginUser(String email, String password) {
         LinkedList vars = new LinkedList();
         vars.add(email);

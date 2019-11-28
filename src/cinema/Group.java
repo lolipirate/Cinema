@@ -59,7 +59,6 @@ public class Group {
         vars.add(this.name);
         vars.add(user.uId);
         java.sql.Timestamp date = new java.sql.Timestamp(Calendar.getInstance().getTime().getTime());
-        System.out.println(date);
         vars.add(date);
         String query = "INSERT INTO groupmembers (groupname, uid, joined) VALUES (?, ?, ?)";
        

@@ -7,6 +7,7 @@ package cinema;
 
 import java.util.LinkedList;
 import org.testng.Assert;
+import static org.testng.Assert.assertEquals;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -33,6 +34,34 @@ public class GroupNGTest {
         Group group = null;
     }
 
+    /**
+     * Test of GetName method, of class Group.
+     */
+    @Test
+    public void testGetName() {
+        System.out.println("GetName");
+        Group instance = new Group();
+        instance.name = "Test Group";
+        String expResult = "Test Group";
+        String result = instance.GetName();
+        assertEquals(result, expResult);
+    }
+
+    /**
+     * Test of GetSuper method, of class Group.
+     */
+    @Test
+    public void testGetSuper() {
+        System.out.println("GetSuper");
+        Group instance = new Group();
+        User testUser = new User();
+        testUser.uId = 10;
+        instance.onCallSuper = testUser;
+        User expResult = testUser;
+        User result = instance.GetSuper();
+        assertEquals(result.uId, expResult.uId);
+    }
+    
     /**
      * Test of AddGroup method, of class Group. The method will also test the
      * AddUserToGroup method. It will create a group and a super to add to said
@@ -120,7 +149,7 @@ public class GroupNGTest {
     * General cleanup methods to make the tests reusable and avoid
     * cluttering up the database. 
      */
-    private void RemoveGroupFromDB(String group_name) {
+    public static void RemoveGroupFromDB(String group_name) {
 
         LinkedList vars = new LinkedList();
         vars.add(group_name);
@@ -129,7 +158,7 @@ public class GroupNGTest {
         Database.Query(query, vars);
     }
 
-    private void RemoveGroupmembersFromDB(String name) {
+    public static void RemoveGroupmembersFromDB(String name) {
         LinkedList vars = new LinkedList();
         vars.add(name);
         String query = "DELETE FROM groupmembers WHERE groupname = ?";

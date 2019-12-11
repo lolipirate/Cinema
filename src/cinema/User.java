@@ -48,6 +48,10 @@ public class User {
     public int GetPhone() {
         return this.phone;
     }
+
+    public int GetUId() {
+        return this.uId;
+    }
     
     // Adds this user to the database
     public void AddUser(String pword) {

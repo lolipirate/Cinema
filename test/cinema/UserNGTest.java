@@ -61,6 +61,19 @@ public class UserNGTest {
     }
 
     /**
+     * Test of GetUId method, of class User.
+     */
+    @Test
+    public void testGetUId() {
+        System.out.println("GetUId");
+        User instance = new User();
+        instance.uId = 10;
+        int expResult = 10;
+        int result = instance.GetUId();
+        assertEquals(result, expResult);
+    }
+    
+    /**
      * Test of AddUser method, of class User.
      */
     @Test

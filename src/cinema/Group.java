@@ -31,11 +31,11 @@ public class Group {
         this.Members = new ArrayList();
     }
     
-    private String GetName() {
+    public String GetName() {
         return this.name;
     }
 
-    private User GetSuper() {
+    public User GetSuper() {
         return this.onCallSuper;
     }
 

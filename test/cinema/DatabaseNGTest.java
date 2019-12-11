@@ -60,6 +60,7 @@ public class DatabaseNGTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
+        // Remove test user and test group
         GroupNGTest.RemoveGroupmembersFromDB(testGroup.name);
         GroupNGTest.RemoveGroupFromDB(testGroup.name);
         UserNGTest.RemoveFromDB(testUser.email);

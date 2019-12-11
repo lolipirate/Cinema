@@ -47,6 +47,8 @@ public class DatabaseNGTest {
         testUser.privilege = 1;
         testUser.pwordHash = "unit tester";
         testUser.AddUser(testUser.pwordHash);
+        // We need to call GetUser to get the uID. But the GetUser test does not
+        // depend only on the uId, so if it passes then there is no problem here.
         testUser.uId = Database.GetUser(testUser.email).uId;
 
         // Add test group
